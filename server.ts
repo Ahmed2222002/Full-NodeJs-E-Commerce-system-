@@ -2,6 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import morgan from "morgan";
 import path from "path";
+import cors from "cors";
+import compression from "compression";
 
 import { Request, Response, NextFunction } from "express";
 import { ApiError } from "./utils/apiError";
@@ -30,9 +32,28 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-app.use(express.json());
+app.use(cors());
+app.options('*', cors());
+app.use(compression());
+
+app.use(express.json(
+  {
+    limit: "50kb"
+  }
+));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "uploads")));
+
+import { rateLimit } from 'express-rate-limit'
+
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	limit: 5, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+	message: "Too many requests from this IP, please try again after an hour",
+})
+
+// Apply the rate limiting middleware to all requests.
+app.use("/api",limiter)
 
 app.use("/api/v1/categories", CategoryRouter);
 app.use("/api/v1/subCategories", SubCategoryRouter);
