@@ -69,7 +69,7 @@ Installation
 4.  **Run the Application**:
 
     ```
-    npm start
+    npm run dev
 
     ```
 
